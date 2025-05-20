@@ -55,6 +55,7 @@ async function generarPDFEnvio(pedido, tiendas) {
     doc.text('Nº', 18, y + 6);
     doc.text('Producto', 28, y + 6);
     doc.text('Pedida', 80, y + 6);
+    doc.text('Peso (kg)', 90, y + 6);
     doc.text('Enviada', 100, y + 6);
     doc.text('Formato', 120, y + 6);
     doc.text('Lote', 150, y + 6);
@@ -65,6 +66,7 @@ async function generarPDFEnvio(pedido, tiendas) {
       doc.text(String(i + 1), 18, y);
       doc.text(l.producto || '-', 28, y);
       doc.text(String(l.cantidad ?? '-') , 80, y, { align: 'right' });
+      doc.text(String(l.peso ?? '-') , 90, y, { align: 'right' });
       doc.text(String(l.cantidadEnviada ?? '-') , 100, y, { align: 'right' });
       doc.text(l.formato || '-', 120, y);
       doc.text(l.lote || '-', 150, y);

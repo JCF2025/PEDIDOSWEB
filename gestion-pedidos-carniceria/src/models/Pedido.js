@@ -7,7 +7,8 @@ const LineaSchema = new mongoose.Schema({
   comentario: String,
   cantidadEnviada: Number,
   lote: String,
-  preparada: Boolean
+  preparada: Boolean,
+  peso: Number // Añadido campo peso
 });
 
 const PedidoSchema = new mongoose.Schema({

@@ -60,6 +60,7 @@ async function generarPDFTienda(pedido, tiendaNombre) {
   // Cantidad pedida
   doc.text('Cantidad', 100, y + 5, { align: 'center' });
   doc.text('pedida', 100, y + 11, { align: 'center' });
+  doc.text('Peso (kg)', 115, y + 8, { align: 'center' });
   // Cantidad enviada desplazada 5mm a la derecha
   doc.text('Cantidad', 130, y + 5, { align: 'center' });
   doc.text('enviada', 130, y + 11, { align: 'center' });
@@ -73,6 +74,7 @@ async function generarPDFTienda(pedido, tiendaNombre) {
     doc.text(l.producto || '-', 32, y);
     doc.text(l.formato || '-', 70, y);
     doc.text(String(l.cantidad || '-'), 110, y, { align: 'right' });
+    doc.text(String(l.peso || '-'), 120, y, { align: 'right' });
     // Cantidad enviada desplazada 5mm a la derecha
     doc.text(String(l.cantidadEnviada || '-'), 145, y, { align: 'right' });
     // Lote desplazado 5mm a la derecha
@@ -313,6 +315,7 @@ const HistoricoTiendaPanel = ({ pedidos, tiendaId, tiendaNombre, onVolver, onMod
                     <th style={{padding:'8px 10px'}}>Producto</th>
                     <th style={{padding:'8px 10px'}}>Formato</th>
                     <th style={{padding:'8px 10px'}}>Pedida</th>
+                    <th style={{padding:'8px 10px'}}>Peso (kg)</th>
                     <th style={{padding:'8px 10px'}}>Enviada</th>
                     <th style={{padding:'8px 10px'}}>Lote</th>
                     <th style={{padding:'8px 10px'}}>Comentario</th>
@@ -334,7 +337,9 @@ const HistoricoTiendaPanel = ({ pedidos, tiendaId, tiendaNombre, onVolver, onMod
                             <td style={{padding:'8px 10px'}}>
                               <input type="number" min="1" value={l.cantidad} onChange={e => setEditandoLineas(editandoLineas.map((li,ix)=>ix===i?{...li,cantidad:Number(e.target.value)}:li))} style={{width:60}} />
                             </td>
-                            <td style={{padding:'8px 10px'}}></td>
+                            <td style={{padding:'8px 10px'}}>
+                              <input type="number" min="0" step="any" value={l.peso || ''} onChange={e => setEditandoLineas(editandoLineas.map((li,ix)=>ix===i?{...li,peso:Number(e.target.value)}:li))} style={{width:60}} />
+                            </td>
                             <td style={{padding:'8px 10px'}}></td>
                             <td style={{padding:'8px 10px'}}></td>
                             <td style={{padding:'8px 10px'}}>
@@ -346,7 +351,7 @@ const HistoricoTiendaPanel = ({ pedidos, tiendaId, tiendaNombre, onVolver, onMod
                             <td style={{padding:'8px 10px'}}>{l.producto}</td>
                             <td style={{padding:'8px 10px'}}>{l.formato}</td>
                             <td style={{padding:'8px 10px', textAlign:'center'}}>{l.cantidad}</td>
-                            <td style={{padding:'8px 10px'}}></td>
+                            <td style={{padding:'8px 10px', textAlign:'center'}}>{l.peso ?? '-'}</td>
                             <td style={{padding:'8px 10px'}}></td>
                             <td style={{padding:'8px 10px'}}></td>
                             <td style={{padding:'8px 10px'}}>{l.comentario || '-'}</td>
@@ -357,6 +362,7 @@ const HistoricoTiendaPanel = ({ pedidos, tiendaId, tiendaNombre, onVolver, onMod
                           <td style={{padding:'8px 10px'}}>{l.producto}</td>
                           <td style={{padding:'8px 10px'}}>{l.formato}</td>
                           <td style={{padding:'8px 10px', textAlign:'center'}}>{l.cantidad}</td>
+                          <td style={{padding:'8px 10px', textAlign:'center'}}>{l.peso ?? '-'}</td>
                           <td style={{padding:'8px 10px', textAlign:'center'}}>{l.cantidadEnviada ?? '-'}</td>
                           <td style={{padding:'8px 10px'}}>{l.lote ?? '-'}</td>
                           <td style={{padding:'8px 10px'}}>{l.comentario || '-'}</td>

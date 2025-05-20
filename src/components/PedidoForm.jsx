@@ -53,6 +53,15 @@ const PedidoForm = ({ onAdd }) => {
               onChange={e => handleLineaChange(idx, 'cantidad', Number(e.target.value))}
               style={{ padding: 8, width: 60 }}
             />
+            <input
+              type="number"
+              min="0"
+              step="any"
+              placeholder="Peso (kg)"
+              value={linea.peso || ''}
+              onChange={e => handleLineaChange(idx, 'peso', Number(e.target.value))}
+              style={{ padding: 8, width: 70 }}
+            />
             <select
               value={linea.formato}
               onChange={e => handleLineaChange(idx, 'formato', e.target.value)}
