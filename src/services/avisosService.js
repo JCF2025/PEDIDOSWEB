@@ -15,3 +15,7 @@ export async function marcarAvisoVisto(avisoId, usuario) {
   const { data } = await axios.patch(`${API_URL}/api/avisos/${avisoId}/visto`, { usuario });
   return data;
 }
+
+export async function eliminarAviso(avisoId) {
+  await axios.delete(`${API_URL}/api/avisos/${avisoId}`);
+}

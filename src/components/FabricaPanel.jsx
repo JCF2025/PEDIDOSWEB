@@ -204,6 +204,7 @@ const FabricaPanel = ({ pedidos, tiendas, onEstadoChange, onLineaChange, onLinea
                 <th>Cant. pedida</th>
                 <th>Cant. enviada</th>
                 <th>Formato pedido</th>
+                <th>Peso (kg)</th>
                 <th>Comentario</th>
                 <th>Lote</th>
                 <th>Preparada</th>
@@ -226,6 +227,16 @@ const FabricaPanel = ({ pedidos, tiendas, onEstadoChange, onLineaChange, onLinea
                     />
                   </td>
                   <td>{linea.formato}</td>
+                  <td>
+                    <input
+                      type="number"
+                      min="0"
+                      step="any"
+                      value={linea.peso || ''}
+                      onChange={e => actualizarLinea(idx, 'peso', Number(e.target.value))}
+                      style={{ width: 70 }}
+                    />
+                  </td>
                   <td>{linea.comentario}</td>
                   <td>
                     <input

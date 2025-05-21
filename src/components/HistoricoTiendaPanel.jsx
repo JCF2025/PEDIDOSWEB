@@ -3,7 +3,6 @@ import { jsPDF } from 'jspdf';
 import Watermark from './Watermark';
 import { DATOS_EMPRESA } from '../configDatosEmpresa';
 import logo from '../assets/logo1.png';
-import { listarAvisos, marcarAvisoVisto } from '../services/avisosService';
 
 function cargarLogoBase64(url) {
   return new Promise((resolve, reject) => {
@@ -60,7 +59,6 @@ async function generarPDFTienda(pedido, tiendaNombre) {
   // Cantidad pedida
   doc.text('Cantidad', 100, y + 5, { align: 'center' });
   doc.text('pedida', 100, y + 11, { align: 'center' });
-  doc.text('Peso (kg)', 115, y + 8, { align: 'center' });
   // Cantidad enviada desplazada 5mm a la derecha
   doc.text('Cantidad', 130, y + 5, { align: 'center' });
   doc.text('enviada', 130, y + 11, { align: 'center' });
@@ -74,7 +72,6 @@ async function generarPDFTienda(pedido, tiendaNombre) {
     doc.text(l.producto || '-', 32, y);
     doc.text(l.formato || '-', 70, y);
     doc.text(String(l.cantidad || '-'), 110, y, { align: 'right' });
-    doc.text(String(l.peso || '-'), 120, y, { align: 'right' });
     // Cantidad enviada desplazada 5mm a la derecha
     doc.text(String(l.cantidadEnviada || '-'), 145, y, { align: 'right' });
     // Lote desplazado 5mm a la derecha
@@ -109,17 +106,6 @@ async function generarPDFTienda(pedido, tiendaNombre) {
 const HistoricoTiendaPanel = ({ pedidos, tiendaId, tiendaNombre, onVolver, onModificarPedido, onAvisoVisto }) => {
   const [modalPedido, setModalPedido] = useState(null);
   const [editandoLineas, setEditandoLineas] = useState(null); // Si no es null, es el array de líneas editables
-  const [avisos, setAvisos] = useState([]);
-  const [vistos, setVistos] = useState([]);
-
-  useEffect(() => {
-    async function fetchAvisos() {
-      const avisosBD = await listarAvisos(tiendaId);
-      setAvisos(avisosBD);
-      setVistos(avisosBD.filter(a => a.vistoPor.includes(tiendaId)).map(a => a.referenciaId));
-    }
-    if (tiendaId) fetchAvisos();
-  }, [tiendaId]);
 
   // Pedidos enviados a fábrica (solo enviados, NO borrador)
   const pedidosEnviados = pedidos.filter(p =>
@@ -130,6 +116,12 @@ const HistoricoTiendaPanel = ({ pedidos, tiendaId, tiendaNombre, onVolver, onMod
     )
   ).sort((a, b) => ((b.numeroPedido || 0) - (a.numeroPedido || 0)));
   // Pedidos preparados o recibidos de fábrica
+  const [vistos, setVistos] = useState(() => JSON.parse(localStorage.getItem('avisos_vistos_' + tiendaId) || '[]'));
+  useEffect(() => {
+    const handler = () => setVistos(JSON.parse(localStorage.getItem('avisos_vistos_' + tiendaId) || '[]'));
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+  }, [tiendaId]);
   const pedidosRecibidos = pedidos.filter(p =>
     p.tiendaId === tiendaId &&
     p.numeroPedido &&
@@ -185,7 +177,7 @@ const HistoricoTiendaPanel = ({ pedidos, tiendaId, tiendaNombre, onVolver, onMod
             <tr><td colSpan={6} style={{textAlign:'center',color:'#888', padding:24}}>No hay pedidos enviados a fábrica ni creados</td></tr>
           )}
           {pedidosEnviados.map((pedido, idx) => (
-            <tr key={`${pedido.numeroPedido}-${pedido.tiendaId}-${pedido.id || pedido._id || idx}`} style={{background: idx%2===0 ? '#fafdff':'#eaf6fb', transition:'background 0.2s'}} onMouseOver={e=>e.currentTarget.style.background='#d0eaff'} onMouseOut={e=>e.currentTarget.style.background=idx%2===0?'#fafdff':'#eaf6fb'}>
+            <tr key={pedido.numeroPedido || pedido.id} style={{background: idx%2===0 ? '#fafdff':'#eaf6fb', transition:'background 0.2s'}} onMouseOver={e=>e.currentTarget.style.background='#d0eaff'} onMouseOut={e=>e.currentTarget.style.background=idx%2===0?'#fafdff':'#eaf6fb'}>
               <td title={pedido.id} style={{padding:'10px 8px', fontSize:14, color:'#007bff'}}>{pedido.id?.slice(0,8) || '-'}</td>
               <td style={{padding:'10px 8px', fontWeight:600}}>{pedido.numeroPedido || '-'}</td>
               <td style={{padding:'10px 8px'}} title={pedido.fechaPedido || pedido.fechaCreacion}>
@@ -229,7 +221,7 @@ const HistoricoTiendaPanel = ({ pedidos, tiendaId, tiendaNombre, onVolver, onMod
           {pedidosRecibidos.map((pedido, idx) => {
             const pendienteAviso = !vistos.includes(pedido.id || pedido._id);
             return (
-              <tr key={`${pedido.numeroPedido}-${pedido.tiendaId}-${pedido.id || pedido._id || idx}`} style={{background: idx%2===0 ? '#fafdff':'#eaf6fb', transition:'background 0.2s'}} onMouseOver={e=>e.currentTarget.style.background='#d0eaff'} onMouseOut={e=>e.currentTarget.style.background=idx%2===0?'#fafdff':'#eaf6fb'}>
+              <tr key={pedido.numeroPedido} style={{background: idx%2===0 ? '#fafdff':'#eaf6fb', transition:'background 0.2s'}} onMouseOver={e=>e.currentTarget.style.background='#d0eaff'} onMouseOut={e=>e.currentTarget.style.background=idx%2===0?'#fafdff':'#eaf6fb'}>
                 <td title={pedido.id} style={{padding:'10px 8px', fontSize:14, color:'#007bff'}}>{pedido.id?.slice(0,8) || '-'}</td>
                 <td style={{padding:'10px 8px', fontWeight:600}}>{pedido.numeroPedido}</td>
                 <td style={{padding:'10px 8px'}} title={pedido.fechaPedido || pedido.fechaCreacion}>
@@ -250,13 +242,13 @@ const HistoricoTiendaPanel = ({ pedidos, tiendaId, tiendaNombre, onVolver, onMod
                   {pendienteAviso ? (
                     <button
                       style={{background:'#fff',color:'#dc3545',border:'1.5px solid #dc3545',borderRadius:6,padding:'6px 16px',fontWeight:700,cursor:'pointer',fontSize:15}}
-                      onClick={async () => {
-                        const aviso = avisos.find(a => a.referenciaId === (pedido.id || pedido._id));
-                        if (aviso) {
-                          await marcarAvisoVisto(aviso._id, tiendaId);
-                          setVistos(prev => [...prev, pedido.id || pedido._id]);
-                          if (onAvisoVisto) onAvisoVisto(pedido.id || pedido._id);
-                        }
+                      onClick={() => {
+                        const key = 'avisos_vistos_' + tiendaId;
+                        const vistos = JSON.parse(localStorage.getItem(key) || '[]');
+                        const idPedido = pedido.id || pedido._id;
+                        localStorage.setItem(key, JSON.stringify([...vistos, idPedido]));
+                        setVistos([...vistos, idPedido]);
+                        if (onAvisoVisto) onAvisoVisto(idPedido);
                       }}
                     >
                       Visto
@@ -315,7 +307,6 @@ const HistoricoTiendaPanel = ({ pedidos, tiendaId, tiendaNombre, onVolver, onMod
                     <th style={{padding:'8px 10px'}}>Producto</th>
                     <th style={{padding:'8px 10px'}}>Formato</th>
                     <th style={{padding:'8px 10px'}}>Pedida</th>
-                    <th style={{padding:'8px 10px'}}>Peso (kg)</th>
                     <th style={{padding:'8px 10px'}}>Enviada</th>
                     <th style={{padding:'8px 10px'}}>Lote</th>
                     <th style={{padding:'8px 10px'}}>Comentario</th>
@@ -337,9 +328,7 @@ const HistoricoTiendaPanel = ({ pedidos, tiendaId, tiendaNombre, onVolver, onMod
                             <td style={{padding:'8px 10px'}}>
                               <input type="number" min="1" value={l.cantidad} onChange={e => setEditandoLineas(editandoLineas.map((li,ix)=>ix===i?{...li,cantidad:Number(e.target.value)}:li))} style={{width:60}} />
                             </td>
-                            <td style={{padding:'8px 10px'}}>
-                              <input type="number" min="0" step="any" value={l.peso || ''} onChange={e => setEditandoLineas(editandoLineas.map((li,ix)=>ix===i?{...li,peso:Number(e.target.value)}:li))} style={{width:60}} />
-                            </td>
+                            <td style={{padding:'8px 10px'}}></td>
                             <td style={{padding:'8px 10px'}}></td>
                             <td style={{padding:'8px 10px'}}></td>
                             <td style={{padding:'8px 10px'}}>
@@ -351,7 +340,7 @@ const HistoricoTiendaPanel = ({ pedidos, tiendaId, tiendaNombre, onVolver, onMod
                             <td style={{padding:'8px 10px'}}>{l.producto}</td>
                             <td style={{padding:'8px 10px'}}>{l.formato}</td>
                             <td style={{padding:'8px 10px', textAlign:'center'}}>{l.cantidad}</td>
-                            <td style={{padding:'8px 10px', textAlign:'center'}}>{l.peso ?? '-'}</td>
+                            <td style={{padding:'8px 10px'}}></td>
                             <td style={{padding:'8px 10px'}}></td>
                             <td style={{padding:'8px 10px'}}></td>
                             <td style={{padding:'8px 10px'}}>{l.comentario || '-'}</td>
@@ -362,7 +351,6 @@ const HistoricoTiendaPanel = ({ pedidos, tiendaId, tiendaNombre, onVolver, onMod
                           <td style={{padding:'8px 10px'}}>{l.producto}</td>
                           <td style={{padding:'8px 10px'}}>{l.formato}</td>
                           <td style={{padding:'8px 10px', textAlign:'center'}}>{l.cantidad}</td>
-                          <td style={{padding:'8px 10px', textAlign:'center'}}>{l.peso ?? '-'}</td>
                           <td style={{padding:'8px 10px', textAlign:'center'}}>{l.cantidadEnviada ?? '-'}</td>
                           <td style={{padding:'8px 10px'}}>{l.lote ?? '-'}</td>
                           <td style={{padding:'8px 10px'}}>{l.comentario || '-'}</td>

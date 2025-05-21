@@ -219,6 +219,17 @@ app.patch('/api/avisos/:id/visto', async (req, res) => {
   }
 });
 
+app.delete('/api/avisos/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const avisoEliminado = await Aviso.findByIdAndDelete(id);
+    if (!avisoEliminado) return res.status(404).json({ error: 'Aviso no encontrado' });
+    res.status(204).end();
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // WebSocket para tiempo real
 io.on('connection', async (socket) => { // Hacerla async para cargar pedidos iniciales desde DB
   console.log('Cliente conectado:', socket.id);

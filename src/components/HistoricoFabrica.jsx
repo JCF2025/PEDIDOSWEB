@@ -54,8 +54,8 @@ async function generarPDFEnvio(pedido, tiendas) {
     doc.rect(15, y, 180, 8, 'F');
     doc.text('Nº', 18, y + 6);
     doc.text('Producto', 28, y + 6);
+    doc.text('Peso (kg)', 60, y + 6);
     doc.text('Pedida', 80, y + 6);
-    doc.text('Peso (kg)', 90, y + 6);
     doc.text('Enviada', 100, y + 6);
     doc.text('Formato', 120, y + 6);
     doc.text('Lote', 150, y + 6);
@@ -65,9 +65,9 @@ async function generarPDFEnvio(pedido, tiendas) {
     (Array.isArray(pedido.lineas) ? pedido.lineas : []).forEach((l, i) => {
       doc.text(String(i + 1), 18, y);
       doc.text(l.producto || '-', 28, y);
-      doc.text(String(l.cantidad ?? '-') , 80, y, { align: 'right' });
-      doc.text(String(l.peso ?? '-') , 90, y, { align: 'right' });
-      doc.text(String(l.cantidadEnviada ?? '-') , 100, y, { align: 'right' });
+      doc.text((l.peso !== undefined && l.peso !== null && l.peso !== '') ? String(l.peso) : '-', 60, y, { align: 'right' });
+      doc.text(l.cantidad !== undefined && l.cantidad !== null ? String(l.cantidad) : '-', 80, y, { align: 'right' });
+      doc.text(l.cantidadEnviada !== undefined && l.cantidadEnviada !== null ? String(l.cantidadEnviada) : '-', 100, y, { align: 'right' });
       doc.text(l.formato || '-', 120, y);
       doc.text(l.lote || '-', 150, y);
       doc.text(l.comentario ? l.comentario.substring(0, 18) : '-', 170, y);
@@ -135,7 +135,7 @@ const HistoricoFabrica = ({ pedidos, tiendas, onVolver }) => {
             <tr><td colSpan={6} style={{textAlign:'center',color:'#888'}}>No hay envíos preparados ni enviados desde fábrica</td></tr>
           )}
           {historico.map((pedido, idx) => (
-            <tr key={pedido.numeroPedido ? `${pedido.numeroPedido}-${pedido.tiendaId}` : `${pedido.id || idx}`}>
+            <tr key={pedido.id || pedido._id || `${pedido.numeroPedido}-${pedido.tiendaId}-${idx}`}>
               <td>{pedido.numeroPedido}</td>
               <td>{tiendas.find(t => t.id === pedido.tiendaId)?.nombre || pedido.tiendaId}</td>
               <td>{pedido.fechaEnvio ? new Date(pedido.fechaEnvio).toLocaleString() : (pedido.fechaPedido ? new Date(pedido.fechaPedido).toLocaleString() : '-')}</td>
@@ -189,6 +189,7 @@ const HistoricoFabrica = ({ pedidos, tiendas, onVolver }) => {
                   <tr>
                     <th style={{padding:'6px 8px'}}>#</th>
                     <th style={{padding:'6px 8px'}}>Producto</th>
+                    <th style={{padding:'6px 8px'}}>Peso (kg)</th>
                     <th style={{padding:'6px 8px'}}>Pedida</th>
                     <th style={{padding:'6px 8px'}}>Enviada</th>
                     <th style={{padding:'6px 8px'}}>Formato</th>
@@ -201,6 +202,7 @@ const HistoricoFabrica = ({ pedidos, tiendas, onVolver }) => {
                     <tr key={l.lote ? `${modalPedido.numeroPedido}-${l.lote}-${i}` : `${modalPedido.numeroPedido}-${l.producto}-${i}`}>
                       <td style={{padding:'6px 8px', textAlign:'center'}}>{i + 1}</td>
                       <td style={{padding:'6px 8px'}}>{l.producto}</td>
+                      <td style={{padding:'6px 8px', textAlign:'center'}}>{(l.peso !== undefined && l.peso !== null && l.peso !== '') ? l.peso : '-'}</td>
                       <td style={{padding:'6px 8px', textAlign:'center'}}>{l.cantidad}</td>
                       <td style={{padding:'6px 8px', textAlign:'center'}}>{l.cantidadEnviada || '-'}</td>
                       <td style={{padding:'6px 8px'}}>{l.formato}</td>
